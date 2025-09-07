@@ -1,0 +1,68 @@
+name: Build Sysroot Packages
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [x86_64, aarch64, armhf]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build sysroot for ${{ matrix.arch }}
+      run: |
+        make sysroot-${{ matrix.arch }}
+
+    - name: Upload sysroot artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: sysroot-${{ matrix.arch }}
+        path: toolchain/vscode-sysroot-${{ matrix.arch }}-linux-gnu.tgz
+        retention-days: 30
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Download all artifacts
+      uses: actions/download-artifact@v4
+      with:
+        path: artifacts
+
+    - name: Create release package
+      run: |
+        mkdir -p release
+        for arch in x86_64 aarch64 armhf; do
+          if [ -f "artifacts/sysroot-$arch/vscode-sysroot-$arch-linux-gnu.tgz" ]; then
+            cp "artifacts/sysroot-$arch/vscode-sysroot-$arch-linux-gnu.tgz" "release/"
+          fi
+        done
+        cp sysroot.sh release/
+        cp README.md release/
+        tar -czf vscode-sysroot-multiarch-${{ github.ref_name }}.tar.gz -C release .
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: vscode-sysroot-multiarch-${{ github.ref_name }}.tar.gz
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
