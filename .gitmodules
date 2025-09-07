@@ -1,0 +1,6 @@
+[submodule "vendor/vscode-linux-build-agent"]
+	path = vendor/vscode-linux-build-agent
+	url = https://github.com/microsoft/vscode-linux-build-agent
+[submodule "vscode-linux-build-agent"]
+	path = vscode-linux-build-agent
+	url = https://github.com/microsoft/vscode-linux-build-agent.git
