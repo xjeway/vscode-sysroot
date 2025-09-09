@@ -96,11 +96,22 @@ docker run --rm test-crosstool which ct-ng
 
 **发布包内容**:
 ```
-vscode-sysroot-multiarch-v1.0.0.tar.gz
+vscode-sysroot-x86_64-v1.0.0.tar.gz
 ├── vscode-sysroot-x86_64-linux-gnu.tgz
+├── sysroot.sh
+├── INSTALL.md (架构特定安装说明)
+└── README.md
+
+vscode-sysroot-aarch64-v1.0.0.tar.gz
 ├── vscode-sysroot-aarch64-linux-gnu.tgz
+├── sysroot.sh
+├── INSTALL.md (架构特定安装说明)
+└── README.md
+
+vscode-sysroot-armhf-v1.0.0.tar.gz
 ├── vscode-sysroot-armhf-linux-gnu.tgz
 ├── sysroot.sh
+├── INSTALL.md (架构特定安装说明)
 └── README.md
 ```
 
@@ -136,7 +147,9 @@ vscode-sysroot-multiarch-v1.0.0.tar.gz
 - `sysroot-armhf`: vscode-sysroot-armhf-linux-gnu.tgz
 
 ### 发布包
-- `vscode-sysroot-multiarch-{version}.tar.gz`: 包含所有架构的完整发布包
+- `vscode-sysroot-x86_64-{version}.tar.gz`: x86_64架构专用包
+- `vscode-sysroot-aarch64-{version}.tar.gz`: aarch64架构专用包
+- `vscode-sysroot-armhf-{version}.tar.gz`: armhf架构专用包
 
 ## 测试结论
 
