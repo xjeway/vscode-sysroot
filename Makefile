@@ -15,19 +15,51 @@ all-archs-gcc10: GCC_VERSION=10.5.0
 all-archs-gcc10: $(addprefix sysroot-gcc10-,$(ARCHS))
 
 # 为每个架构构建sysroot
-sysroot-%:
+sysroot-%: Dockerfile
 	@echo "Building sysroot for architecture: $* with GCC $(GCC_VERSION)"
 	@mkdir -p toolchain
 	@case $* in \
 		x86_64) \
-			docker build --build-arg ARCH=x86_64 --build-arg CONFIG_FILE=x86_64-gcc-$(GCC_VERSION)-glibc-2.28.config -t vscode-sysroot-$* --target sysroot . ;; \
+			docker build --build-arg ARCH=x86_64 --build-arg CONFIG_FILE=x86_64-gcc-$(GCC_VERSION)-glibc-2.28.config --build-arg PREFIX_DIR=vendor/vscode-linux-build-agent/ -t vscode-sysroot-$* --target sysroot . ;; \
 		aarch64) \
-			docker build --build-arg ARCH=aarch64 --build-arg CONFIG_FILE=aarch64-gcc-$(GCC_VERSION)-glibc-2.28.config -t vscode-sysroot-$* --target sysroot . ;; \
+			docker build --build-arg ARCH=aarch64 --build-arg CONFIG_FILE=aarch64-gcc-$(GCC_VERSION)-glibc-2.28.config --build-arg PREFIX_DIR=vendor/vscode-linux-build-agent/ -t vscode-sysroot-$* --target sysroot . ;; \
 		armhf) \
-			docker build --build-arg ARCH=armhf --build-arg CONFIG_FILE=armhf-gcc-$(GCC_VERSION)-glibc-2.28.config -t vscode-sysroot-$* --target sysroot . ;; \
+			docker build --build-arg ARCH=armhf --build-arg CONFIG_FILE=armhf-gcc-$(GCC_VERSION)-glibc-2.28.config --build-arg PREFIX_DIR=vendor/vscode-linux-build-agent/ -t vscode-sysroot-$* --target sysroot . ;; \
 	esac
 	@docker run -it --rm -v $$PWD/toolchain:/out vscode-sysroot-$* cp vscode-sysroot-$*-linux-gnu.tgz /out/
 	@ls -l toolchain/vscode-sysroot-$*-linux-gnu.tgz
+
+# 明确的目标规则
+sysroot-x86_64: Dockerfile
+	@$(MAKE) sysroot-x86_64-internal
+
+sysroot-aarch64: Dockerfile
+	@$(MAKE) sysroot-aarch64-internal
+
+sysroot-armhf: Dockerfile
+	@$(MAKE) sysroot-armhf-internal
+
+# 内部构建规则
+sysroot-x86_64-internal:
+	@echo "Building sysroot for architecture: x86_64 with GCC $(GCC_VERSION)"
+	@mkdir -p toolchain
+	@docker build --build-arg ARCH=x86_64 --build-arg CONFIG_FILE=x86_64-gcc-$(GCC_VERSION)-glibc-2.28.config --build-arg PREFIX_DIR=vendor/vscode-linux-build-agent/ -t vscode-sysroot-x86_64 --target sysroot .
+	@docker run -it --rm -v $$PWD/toolchain:/out vscode-sysroot-x86_64 cp vscode-sysroot-x86_64-linux-gnu.tgz /out/
+	@ls -l toolchain/vscode-sysroot-x86_64-linux-gnu.tgz
+
+sysroot-aarch64-internal:
+	@echo "Building sysroot for architecture: aarch64 with GCC $(GCC_VERSION)"
+	@mkdir -p toolchain
+	@docker build --build-arg ARCH=aarch64 --build-arg CONFIG_FILE=aarch64-gcc-$(GCC_VERSION)-glibc-2.28.config --build-arg PREFIX_DIR=vendor/vscode-linux-build-agent/ -t vscode-sysroot-aarch64 --target sysroot .
+	@docker run -it --rm -v $$PWD/toolchain:/out vscode-sysroot-aarch64 cp vscode-sysroot-aarch64-linux-gnu.tgz /out/
+	@ls -l toolchain/vscode-sysroot-aarch64-linux-gnu.tgz
+
+sysroot-armhf-internal:
+	@echo "Building sysroot for architecture: armhf with GCC $(GCC_VERSION)"
+	@mkdir -p toolchain
+	@docker build --build-arg ARCH=armhf --build-arg CONFIG_FILE=armhf-gcc-$(GCC_VERSION)-glibc-2.28.config --build-arg PREFIX_DIR=vendor/vscode-linux-build-agent/ -t vscode-sysroot-armhf --target sysroot .
+	@docker run -it --rm -v $$PWD/toolchain:/out vscode-sysroot-armhf cp vscode-sysroot-armhf-linux-gnu.tgz /out/
+	@ls -l toolchain/vscode-sysroot-armhf-linux-gnu.tgz
 
 # GCC 10.5.0 版本的构建目标
 sysroot-gcc10-%:
@@ -70,4 +102,4 @@ help:
 	@echo "  make sysroot-gcc10-x86_64   # Build x86_64 with GCC 10.5.0"
 	@echo "  make all-archs-gcc10        # Build all architectures with GCC 10.5.0"
 
-.PHONY: all all-archs sysroot crosstool clean clean-all help $(addprefix sysroot-,$(ARCHS))
+.PHONY: all all-archs sysroot crosstool clean clean-all help $(addprefix sysroot-,$(ARCHS)) $(addprefix sysroot-,$(ARCHS))-internal

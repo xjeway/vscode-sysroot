@@ -11,21 +11,24 @@ RUN apt-get update && apt-get install -y \
 ENV PKG=crosstool-ng-1.27.0
 RUN wget https://github.com/crosstool-ng/crosstool-ng/releases/download/$PKG/$PKG.tar.bz2 \
     && tar -xjf $PKG.tar.bz2 \
-    && cd $PKG && ./configure --prefix=/$PKG/out && make && make install \
+    && cd $PKG && ./configure --prefix=/usr/local && make && make install \
     && cd .. && rm -rf $PKG.tar.bz2 $PKG
 
-ENV PATH=$PATH:/$PKG/out/bin
 ENV CT_ALLOW_BUILD_AS_ROOT_SURE=y
 WORKDIR /src
 
 FROM crosstool AS sysroot
 
+# 继承crosstool阶段的环境变量
+ENV CT_ALLOW_BUILD_AS_ROOT_SURE=y
+
 # 参数化架构
 ARG ARCH=x86_64
 ARG CONFIG_FILE=${ARCH}-gcc-8.5.0-glibc-2.28.config
+ARG PREFIX_DIR=vendor/vscode-linux-build-agent/
 
 # 复制配置文件
-COPY ${CONFIG_FILE} /src/.config
+COPY ${PREFIX_DIR}${CONFIG_FILE} /src/.config
 
 # 构建工具链
 RUN ct-ng build
