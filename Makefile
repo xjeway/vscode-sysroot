@@ -1,5 +1,5 @@
 # 支持的架构列表
-ARCHS := x86_64 aarch64 armhf
+ARCHS := x86_64 aarch64 #armhf
 
 # GCC版本选择 (8.5.0 或 10.5.0)
 GCC_VERSION ?= 8.5.0
